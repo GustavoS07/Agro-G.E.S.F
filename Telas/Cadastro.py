@@ -28,6 +28,29 @@ def abrir_tela_cadastro(janela_login):
     # Ícone da janela
     cadastro.iconbitmap("./Imgs/IconeAgro.ico")
 
+    imagem_original = Image.open("./Imgs/FundoJanela.png")
+    imagem_ctk = ctk.CTkImage(
+        light_image=imagem_original,
+        dark_image=imagem_original,
+        size=(largura, altura)
+    )
+    
+    fundo_label = ctk.CTkLabel(cadastro, text="", image=imagem_ctk)
+    fundo_label.place(x=0, y=0, relwidth=1, relheight=1)
+    
+    def redimensionar_imagem(event):
+        nova_largura = event.width
+        nova_altura = event.height
+        nova_ctk_image = ctk.CTkImage(
+            light_image=imagem_original.resize((nova_largura, nova_altura)),
+            dark_image=imagem_original.resize((nova_largura, nova_altura)),
+            size=(nova_largura, nova_altura)
+        )
+        fundo_label.configure(image=nova_ctk_image)
+        fundo_label.image = nova_ctk_image
+
+    cadastro.bind("<Configure>", redimensionar_imagem)
+    
     # Frame principal
     frame_princ = ctk.CTkFrame(cadastro, width=721, height=789, corner_radius=20, fg_color="#FEF2D5")
     frame_princ.place(relx=0.5, rely=0.475, anchor="center")
