@@ -131,24 +131,14 @@ def abrir_tela_cadastro(janela_login):
         fg_color="transparent")
     botoes_frame.pack(pady=(10, 10))
 
-    # Botões lado a lado
-    cancelar = ctk.CTkButton(
-        master=botoes_frame, 
-        text="CANCELAR", 
-        width=150, 
-        height=40, 
-        fg_color="#A33B3B",
-        hover_color="#8c3030", font=("Lato", 14), corner_radius=10,
-        command=cadastro.destroy).grid(row=0, column=0, padx=0)
-
     cadastrar = ctk.CTkButton(
         master=botoes_frame, 
         text="CADASTRAR", 
-        width=150, 
+        width=170, 
         height=40, 
-        fg_color="#22532C",
-        hover_color="#1a4022", 
-        font=("Lato", 14), 
+        fg_color="#4C8042",
+        hover_color="#3F6937", 
+        font=("Lato", 17), 
         corner_radius=10).grid(row=0, column=1, padx=0.5)
 
     # Botão voltar
@@ -156,12 +146,12 @@ def abrir_tela_cadastro(janela_login):
         cadastro.destroy()
         janela_login.deiconify()
 
-    cancelar = ctk.CTkButton(
+    voltar = ctk.CTkButton(
         master=frame_princ, 
         text="VOLTAR", 
-        width=200, height=35, 
-        fg_color="#F9BB1F", 
-        hover_color="#d19d19",
+        width=130, height=35, 
+        fg_color="#ADA339", 
+        hover_color="#918930",
         font=("Lato", 13), 
         corner_radius=20, 
         command=voltar_para_login).pack(pady=(5, 20))
