@@ -9,10 +9,8 @@ def train_model(model, dataloaders, dataset_sizes, criterion, optimizer, device,
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
     
-    # ✅ Chaves consistentes
     history = {'train_loss': [], 'val_loss': [], 'train_acc': [], 'val_acc': []}
     
-    # ✅ Loop corretamente indentado dentro da função
     for epoch in range(num_epochs):
         print(f'Epoch {epoch+1}/{num_epochs}')
         print('-' * 20)
@@ -52,7 +50,6 @@ def train_model(model, dataloaders, dataset_sizes, criterion, optimizer, device,
             
             print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
             
-            # ✅ Monitoramento corrigido com chaves consistentes
             if phase == 'val' and epoch > 0:
                 if (history['val_loss'][-1] > history['val_loss'][-2] and 
                     history['train_loss'][-1] < history['train_loss'][-2]):
