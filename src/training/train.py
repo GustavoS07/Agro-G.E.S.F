@@ -44,7 +44,6 @@ def train_model(model, dataloaders, dataset_sizes, criterion, optimizer, device,
             epoch_loss = running_loss / dataset_sizes[phase]
             epoch_acc = running_corrects / dataset_sizes[phase]
             
-            # ✅ Chaves consistentes
             history[f'{phase}_loss'].append(epoch_loss)
             history[f'{phase}_acc'].append(epoch_acc)
             
