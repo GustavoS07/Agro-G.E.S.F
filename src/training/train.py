@@ -1,7 +1,8 @@
 import torch
 import time
 import copy
-from utils.utils import save_checkpoint, calculate_accuracy
+
+from ..utils.utils import save_checkpoint, calculate_accuracy
 
 def train_model(model, dataloaders, dataset_sizes, criterion, optimizer, device, num_epochs):
     model = model.to(device)
@@ -9,10 +10,8 @@ def train_model(model, dataloaders, dataset_sizes, criterion, optimizer, device,
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
     
-    # ✅ Chaves consistentes
     history = {'train_loss': [], 'val_loss': [], 'train_acc': [], 'val_acc': []}
     
-    # ✅ Loop corretamente indentado dentro da função
     for epoch in range(num_epochs):
         print(f'Epoch {epoch+1}/{num_epochs}')
         print('-' * 20)
@@ -46,13 +45,11 @@ def train_model(model, dataloaders, dataset_sizes, criterion, optimizer, device,
             epoch_loss = running_loss / dataset_sizes[phase]
             epoch_acc = running_corrects / dataset_sizes[phase]
             
-            # ✅ Chaves consistentes
             history[f'{phase}_loss'].append(epoch_loss)
             history[f'{phase}_acc'].append(epoch_acc)
             
             print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
             
-            # ✅ Monitoramento corrigido com chaves consistentes
             if phase == 'val' and epoch > 0:
                 if (history['val_loss'][-1] > history['val_loss'][-2] and 
                     history['train_loss'][-1] < history['train_loss'][-2]):
