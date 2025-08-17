@@ -2,17 +2,7 @@ import customtkinter as ctk
 from PIL import Image, ImageTk, ImageDraw
 import tkinter as tk
 from pathlib import Path
-
-# Caminho das imagens
-caminho_imgs = {
-    'icon': "./Imgs/IconeAgro.ico",
-    'moita_1': "./Imgs/visu_element/Moita_1.png",    
-    'moita_2': "./Imgs/visu_element/Moita_2.png",
-    'foto_enzo': "./Imgs/devs/Foto_Enzo.png",
-    'foto_felipe': "./Imgs/devs/Foto_Felipe.png",
-    'foto_sakiri': "./Imgs/devs/Foto_Sakiri.png",
-    'foto_gustavo': "./Imgs/devs/Foto_Gustavo.png"
-}
+from Cor_Imgs import cores, caminho_imgs
 
 # Função para centralizar a janela
 def centralizar_janela(window, width, height):
@@ -46,32 +36,49 @@ def abrir_sobre_nos(janela_login):
     JanelaSobre = tk.Toplevel(janela_login)
     JanelaSobre.title("AGRO G.E.S.F Sobre Nós")
     centralizar_janela(JanelaSobre, 1200, 700)
-    JanelaSobre.configure(bg="#274022")
+    JanelaSobre.configure(bg=cores['cor_fundo'])
     JanelaSobre.resizable(True, True)
 
     if Path(caminho_imgs['icon']).is_file():
         JanelaSobre.iconbitmap(caminho_imgs['icon'])
 
-    # ====== Adicionando as moitas no mesmo padrão ======
     moita1_img = carregar_ctk_imagem(caminho_imgs['moita_1'], (350, 130))
     moita2_img = carregar_ctk_imagem(caminho_imgs['moita_2'], (350, 130))
 
     if moita1_img:
-        ctk.CTkLabel(master=JanelaSobre, image=moita1_img, text="").place(relx=1.0, rely=1.0, anchor="se")
+        ctk.CTkLabel(
+            master=JanelaSobre, 
+            image=moita1_img, 
+            text="").place(relx=1.0, rely=1.0, anchor="se")
+        
     if moita2_img:
-        ctk.CTkLabel(master=JanelaSobre, image=moita2_img, text="").place(relx=0.0, rely=1.0, anchor="sw")
+        ctk.CTkLabel(
+            master=JanelaSobre, 
+            image=moita2_img, 
+            text="").place(relx=0.0, rely=1.0, anchor="sw")
 
-    # ====== Conteúdo da página ======
-    Foto_Enzo = ctk.CTkImage(light_image=imagem_redonda(caminho_imgs['foto_enzo']), size=(150, 150))
-    Foto_felipe = ctk.CTkImage(light_image=imagem_redonda(caminho_imgs['foto_felipe']), size=(150, 150))
-    Foto_Sakiri = ctk.CTkImage(light_image=imagem_redonda(caminho_imgs['foto_sakiri']), size=(150, 150))
-    Foto_Gustavo = ctk.CTkImage(light_image=imagem_redonda(caminho_imgs['foto_gustavo']), size=(150, 150))
+    #Conteúdo da página
+    Foto_Enzo = ctk.CTkImage(
+        light_image=imagem_redonda(caminho_imgs['Enzo']), 
+        size=(150, 150))
+    
+    Foto_felipe = ctk.CTkImage(
+        light_image=imagem_redonda(caminho_imgs['Felipe']), 
+        size=(150, 150))
+    
+    Foto_Sakiri = ctk.CTkImage(
+        light_image=imagem_redonda(caminho_imgs['Gustvao']), 
+        size=(150, 150))
+    
+    Foto_Gustavo = ctk.CTkImage(
+        light_image=imagem_redonda(caminho_imgs['Sak']), 
+        size=(150, 150))
 
     Label_Titulo = ctk.CTkLabel(
         master=JanelaSobre,
         text="Equipe do AGRO G.E.S.F",
         font=("Poppins", 35, "bold"),
-        text_color="#FFFFFF"
+        text_color=cores['branco']
     ).pack(pady=(60, 70))
 
     label_Enzo = ctk.CTkLabel(
@@ -80,7 +87,7 @@ def abrir_sobre_nos(janela_login):
         image=Foto_Enzo, 
         compound="bottom", 
         font=("Roboto", 20, "bold"),
-        text_color=("#FFFFFF")
+        text_color=cores['branco']
         ).place(x=100, y=140)
     
     Label_felipe = ctk.CTkLabel(
@@ -89,7 +96,7 @@ def abrir_sobre_nos(janela_login):
         image=Foto_felipe, 
         compound="bottom", 
         font=("Roboto", 20, "bold"),
-        text_color=("#FFFFFF")
+        text_color=cores['branco']
         ).place(x=390, y=140)
     
     Label_Sakiri = ctk.CTkLabel(
@@ -98,7 +105,7 @@ def abrir_sobre_nos(janela_login):
         image=Foto_Sakiri, 
         compound="bottom", 
         font=("Roboto", 20, "bold"),
-        text_color=("#FFFFFF")
+        text_color=cores['branco']
         ).place(x=680, y=140)
     
     Label_Gustavo = ctk.CTkLabel(
@@ -107,7 +114,7 @@ def abrir_sobre_nos(janela_login):
         image=Foto_Gustavo, 
         compound="bottom", 
         font=("Roboto", 20, "bold"),
-        text_color=("#FFFFFF")
+        text_color=cores['branco']
         ).place(x=950, y=140)
 
     texto_enzo = (
@@ -122,9 +129,19 @@ def abrir_sobre_nos(janela_login):
     frame_height = 220
 
     def criar_frame_info(x, y, texto):
-        frame = ctk.CTkFrame(master=JanelaSobre, width=frame_widht, height=frame_height, fg_color="#FEF2D5", corner_radius=20)
+        frame = ctk.CTkFrame(
+            master=JanelaSobre, 
+            width=frame_widht, 
+            height=frame_height, fg_color=cores['frame_bg'], corner_radius=20)
         frame.place(x=x, y=y)
-        ctk.CTkLabel(master=frame, text=texto, font=("Lato", 14), text_color="#000000", justify="left", wraplength=200).place(relx=0.5, rely=0.5, anchor="center")
+        
+        ctk.CTkLabel(
+            master=frame, 
+            text=texto, 
+            font=("Lato", 14), 
+            text_color=cores['preto'], 
+            justify="left", 
+            wraplength=200).place(relx=0.5, rely=0.5, anchor="center")
 
     criar_frame_info(60, 350, texto_enzo)
     criar_frame_info(360, 350, texto_enzo)
@@ -145,6 +162,6 @@ def abrir_sobre_nos(janela_login):
         width=120,
         height=40,
         font=("Lato", 14),
-        fg_color="#ADA339",
-        hover_color="#918930"
+        fg_color=cores['amarelo_secundario'],
+        hover_color=cores['amarelo_secundario_hover']
     ).place(x=520, y=620)
