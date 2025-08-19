@@ -2,6 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import numpy as np
+from sklearn.metrics import f1_socre, reacall_score, classification_report
+
+
 class SEBlock(nn.Module):
     def __init__(self,channels,reduction=16):
         super(SEBlock,self).__init__()
@@ -34,64 +38,60 @@ class CNN(nn.Module):
             #Segunda camada - Depthwise Separable
             nn.Conv2d(32,32,kernel_size=3,padding=1,groups=32,bias=False),
             nn.BatchNorm2d(32),
-            nn.ReLU(inplace=True),
+            nn.SiLU(inplace=True),
             nn.Conv2d(32,64,kernel_size=1,bias=False),
             nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True),
+            nn.SiLU(inplace=True),
             nn.MaxPool2d(2,2),
             
             #Terceira camda - Depthwise Separable
             nn.Conv2d(64,64,kernel_size=3,padding=1,groups=64,bias=False),
             nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True),
+            nn.SiLU(inplace=True),
             nn.Conv2d(64,128, kernel_size=1,bias=False),
             nn.BatchNorm2d(128),
-            nn.ReLU(inplace=True),
+            nn.SiLU(inplace=True),
             nn.MaxPool2d(2,2),
             
             #Quarta camada - Depthwise Separable e SE Attention
             nn.Conv2d(128,128,kernel_size=3,padding=1, groups=128,bias=False),
             nn.BatchNorm2d(128),
-            nn.ReLU(inplace=True),
+            nn.SiLU(inplace=True),
             nn.Conv2d(128,256,kernel_size=1,bias=False),
             nn.BatchNorm2d(256),
-            nn.ReLU(inplace=True),
+            nn.SiLU(inplace=True),
             SEBlock(256,16),
             nn.MaxPool2d(2,2),
 
             #Quinta camada - Depthwise e SE
             nn.Conv2d(256,256,kernel_size=3,padding=1,groups=256,bias=False),
             nn.BatchNorm2d(256),
-            nn.ReLU(inplace=True),
+            nn.SiLU(inplace=True),
             nn.Conv2d(256,512,kernel_size=1,bias=False),
             nn.BatchNorm2d(512),
-            nn.ReLU(inplace=True),
+            nn.SiLU(inplace=True),
             SEBlock(512,32),
             nn.MaxPool2d(2,2),
 
             #Sexta camada 
             nn.Conv2d(512,512,kernel_size=3,padding=1,groups=512,bias=False),
             nn.BatchNorm2d(512),
-            nn.ReLU(inplace=True),
+            nn.SiLU(inplace=True),
             nn.Conv2d(512,768,kernel_size=1,bias=False),
             nn.BatchNorm2d(768),
-            nn.ReLU(inplace=True),
+            nn.SiLU(inplace=True),
             SEBlock(768,48),
             
-            nn.AdaptiveAvgPool2d((4,4)),
-            nn.Dropout2d(0.3),
+            nn.AdaptiveAvgPool2d(1),
+            nn.Dropout2d(0.2),
         )
                 
         self.classifier = nn.Sequential (
             nn.Flatten(),
-            nn.Linear(768*4*4,512,bias=False),
-            nn.BatchNorm1d(512),
-            nn.ReLU(inplace=True),
-            nn.Dropout(0.5),
             nn.Linear(512,256,bias=False),
             nn.BatchNorm1d(256),
-            nn.ReLU(inplace=True),
-            nn.Dropout(0.3),
+            nn.SiLU(inplace=True),
+            nn.Dropout(0.5),
             nn.Linear(256,num_classes)
         )
         self._initialize_weights()         
@@ -113,3 +113,17 @@ class CNN(nn.Module):
         x = self.features(x)
         x = self.classifier(x)
         return x
+    
+    def fuse_model(self):
+        import torch.ao.quantization as tq
+        for m in self.features:
+            if isinstance(m,nn.Sequential):
+                for idx in range(len(m)-2):
+                    if isinstance(m[idx],nn.Conv2d) and isinstance(m[idx+1],nn.BatchNorm2d) and isinstance(m[idx+2],nn.Silu):
+                        tq.fuse_modules(m[str(idx),str(idx+1),str(idx+2)],inplace=True)
+                        
+                    for m in self.features:
+                        if isinstance(m, nn.Sequential):
+                            for idx in range(len(m)-1):
+                                if isinstance(m[idx],nn.Conv2d) and isinstance(m[idx+1],nn.BatchNorm2d):
+                                    tq.fuse_modules(m[str(idx),str(idx+1)],inplace=True)
