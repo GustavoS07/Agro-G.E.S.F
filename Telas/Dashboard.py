@@ -31,16 +31,38 @@ def main():
     
     if Path(caminho_imgs['icon']).is_file():
         dashBoard.iconbitmap(caminho_imgs['icon'])
+        
     
-    # Frames (cada página ocupa a tela inteira)
+    # Imagens visuais
+    
+    Folha_inferior = carregar_ctk_imagem(caminho_imgs['folha_dash_menu_inferior'], (250,250))
+    Folha_superior = carregar_ctk_imagem(caminho_imgs['folha_dash_menu_superior'], (250,250))
+    
+    
+    if Folha_inferior:
+        Folha_inferior_label = ctk.CTkLabel(
+        master=dashBoard,
+        image=Folha_inferior,
+        text=""
+    )
+    Folha_inferior_label.place(relx=1.0, rely=1.0, anchor="se")
+
+    if Folha_superior:
+        Folha_superior_label = ctk.CTkLabel(
+        master=dashBoard,
+        image=Folha_superior,
+        text=""
+    )
+    Folha_superior_label.place(relx=0.0, rely=0.0, anchor="nw")
+    
+    
+    
+    # Frames (trocar para outros arquivos)
     frame_dashboard = ctk.CTkFrame(master=dashBoard, fg_color=cores['cor_fundo'])
     frame_glossario = ctk.CTkFrame(master=dashBoard, fg_color=cores['cor_fundo'])
     frame_config = ctk.CTkFrame(master=dashBoard, fg_color=cores['cor_fundo'])
     frame_dados = ctk.CTkFrame(master=dashBoard, fg_color=cores['cor_fundo'])
-    frame_devs = ctk.CTkFrame(master=dashBoard,fg_color=cores['cor_fundo'])
     
-    for f in (frame_dashboard, frame_glossario, frame_config, frame_dados, frame_devs):
-        f.place(relx=0, rely=0, relwidth=1, relheight=0.9)  # ocupa 90% da tela, deixando espaço pro menu
     
     # Labels para diferenciar páginas
     ctk.CTkLabel(
@@ -71,20 +93,12 @@ def main():
         text_color=cores['branco']
     ).pack(pady=20)
     
-    ctk.CTkLabel(
-        frame_devs,
-        text="Sobre Nós",
-        font=("Lato", 30),
-        text_color=cores['branco']
-    ).pack(pady=20)
-    
     # Função para trocar página
     def Trocar_Pagina(pagina):
         frame_dashboard.lower()
         frame_glossario.lower()
         frame_config.lower()
         frame_dados.lower()
-        frame_devs.lower()
         pagina.lift()
         
     # Carregar imagens do menu
@@ -163,7 +177,7 @@ def main():
         height=40,
         fg_color="transparent",
         hover_color=cores['branco'],
-                command=lambda: abrir_sobre_nos(dashBoard)
+        command=lambda: abrir_sobre_nos(dashBoard)
     )
     Devs_buttom.pack(side="left", expand=True, padx=50, pady=10)
     

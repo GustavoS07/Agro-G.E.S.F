@@ -29,6 +29,8 @@ caminho_imgs = {
     'moita_2': "./Imgs/visu_element/Moita_2.png",
     'moita_flutu': "./Imgs/visu_element/Moita_flutuante.png",
     'moita_flutu2': "./Imgs/visu_element/Moita_flutuante2.png",
+    'folha_dash_menu_inferior': "./Imgs/visu_element/Folha_dash_inferior_direito.png",
+    'folha_dash_menu_superior': "./Imgs/visu_element/Folha_dash_superior_esquerdo.png",
     
     # imagens do Menu
     'home_menu': "./Imgs/visu_element/Icone_dash_menu.png",
