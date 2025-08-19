@@ -30,10 +30,10 @@ def imagem_redonda(caminho_imagem, tamanho=(150, 150)):
     img.putalpha(mascara)
     return img
 
-def abrir_sobre_nos(janela_login):
-    janela_login.withdraw()
+def abrir_sobre_nos(dashboard):
+    dashboard.withdraw()
 
-    JanelaSobre = tk.Toplevel(janela_login)
+    JanelaSobre = tk.Toplevel(dashboard)
     JanelaSobre.title("AGRO G.E.S.F Sobre Nós")
     centralizar_janela(JanelaSobre, 1200, 700)
     JanelaSobre.configure(bg=cores['cor_fundo'])
@@ -151,7 +151,7 @@ def abrir_sobre_nos(janela_login):
     # Botão para voltar
     def voltar_para_login():
         JanelaSobre.destroy()
-        janela_login.deiconify()
+        dashboard.deiconify()
 
     #botão provisório(trocar quando tiver dashboard)
     voltar_botão = ctk.CTkButton(

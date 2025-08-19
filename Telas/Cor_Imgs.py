@@ -10,7 +10,8 @@ cores = {
     'cinza': "#808080",
     'cinza_hover': "#4a4a4a",
     'branco': "#FFFFFF",
-    'preto': "#000000"
+    'preto': "#000000",
+    'Fundo_Menu': "#a4c639"
 }
 
 # caminhos das imagens
@@ -27,5 +28,12 @@ caminho_imgs = {
     'moita_1': "./Imgs/visu_element/Moita_1.png",
     'moita_2': "./Imgs/visu_element/Moita_2.png",
     'moita_flutu': "./Imgs/visu_element/Moita_flutuante.png",
-    'moita_flutu2': "./Imgs/visu_element/Moita_flutuante2.png"
+    'moita_flutu2': "./Imgs/visu_element/Moita_flutuante2.png",
+    
+    # imagens do Menu
+    'home_menu': "./Imgs/visu_element/Icone_dash_menu.png",
+    'glossario_menu':"./Imgs/visu_element/Icone_gloss_menu.png",
+    'config_menu': "./Imgs/visu_element/icone_config_menu.png",
+    'dev_menu': "./Imgs/visu_element/devs_icon_menu.png",
+    'dados_menu': "./Imgs/visu_element/dados_icon_menu.png"
 }

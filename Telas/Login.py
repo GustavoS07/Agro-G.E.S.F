@@ -2,6 +2,8 @@ from pathlib import Path
 from PIL import Image
 import customtkinter as ctk
 from Cor_Imgs import cores, caminho_imgs
+import Dashboard
+
 
 # Funções Utilitárias
 
@@ -43,6 +45,9 @@ def criar_campo_com_imagem(master, text, icon_path, size, show=None):
     entrada.pack(padx=60, pady=(0, 5), anchor="w")
     return entrada
 
+
+    
+    
 # Interface 
 def main():
     ctk.set_appearance_mode("light")
@@ -52,6 +57,11 @@ def main():
     janela.title("AGRO G.E.S.F")
     centralizar_janela(janela, 1200, 700)
     janela.configure(fg_color=cores['cor_fundo'])
+    
+    
+    def abrir_dashboard():
+        janela.destroy()   # fecha login
+        Dashboard.main()   # abre dashboard
     
     if Path(caminho_imgs['icon']).is_file():janela.iconbitmap(caminho_imgs['icon'])
 
@@ -139,7 +149,9 @@ def main():
         font=("Lato", 17, "bold"),
         fg_color=cores['verde_primario'],
         hover_color=cores['verde_primario_hover'],
+        command=abrir_dashboard
     ).pack(pady=(10, 20))
+
 
     Criar_Buttom= ctk.CTkButton(
         frame_login, 
