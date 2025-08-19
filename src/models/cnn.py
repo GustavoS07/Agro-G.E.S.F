@@ -33,7 +33,7 @@ class CNN(nn.Module):
 
             #Segunda camada - Depthwise Separable
             nn.Conv2d(32,32,kernel_size=3,padding=1,groups=32,bias=False),
-            nn.BatchNorm2d(64),
+            nn.BatchNorm2d(32),
             nn.ReLU(inplace=True),
             nn.Conv2d(32,64,kernel_size=1,bias=False),
             nn.BatchNorm2d(64),
@@ -94,9 +94,9 @@ class CNN(nn.Module):
             nn.Dropout(0.3),
             nn.Linear(256,num_classes)
         )
-        self._intialize_weights()
-        
-    def _intialize_weights(self):
+        self._initialize_weights()         
+    
+    def _initialize_weights(self):
         for m in self.modules():
             if isinstance(m,nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight,mode='fan_out',nonlinearity='relu')
@@ -109,7 +109,7 @@ class CNN(nn.Module):
                     nn.init.constant_(m.bias,0)
                 
 
-def forward(self, x):
-    x = self.features(x)
-    x = self.classifier(x)
-    return x
+    def forward(self, x):
+        x = self.features(x)
+        x = self.classifier(x)
+        return x

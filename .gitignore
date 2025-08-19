@@ -1,7 +1,8 @@
 # Datasets
-data/raw/
-data/train/
-data/val/
+*.JPEG
+*.JPG
+*.PNG
+*.BMP
 *.jpg
 *.jpeg
 *.png

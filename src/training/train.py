@@ -2,7 +2,7 @@ import torch
 import time
 import copy
 
-from ..utils.utils import save_checkpoint, calculate_accuracy
+from utils.utils import save_checkpoint, calculate_accuracy
 
 def train_model(model, dataloaders, dataset_sizes, criterion, optimizer, device, num_epochs):
     model = model.to(device)
