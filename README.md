@@ -10,7 +10,7 @@
   </a>
 </p>
 
-
+> O Agro-G.E.S.F é um sistema integrado de hardware e software desenvolvido para auxiliar pequenos produtores na detecção precoce de pragas e doenças por meio de redes neurais convolucionais (CNN).
 ## Tabela de Conteúdos
 
 - [Introdução](#Introdução)
@@ -37,7 +37,17 @@ eficiente
 * Diagrama de Atividade
 * Wireframes
 
-## Instalação
+## 💻 Pré-requisitos
+
+Antes de começar a rodar o modelo, observe se seu sistema é capaz de suportá-lo
+
+| Requisitos Mínimos | Requisitos Recomendados |
+|------------------------------------|---------------------------------------|
+| CPU: ARM Cortex-A76 2,4 GHz 4‑core  | CPU: Ryzen 7 5700G / i7-10700        |
+| RAM: 8 GB LPDDR4                   | RAM: 16 GB DDR4+                     |
+| GPU: VideoCore VII integrado       | GPU: RX 6750 XT / RTX 3060           |
+| Armazenamento: 20 GB disponível          | Armazenamento: 50 GB disponível            |
+
 
 
 
