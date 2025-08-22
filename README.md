@@ -50,5 +50,33 @@ Antes de começar a rodar o modelo, observe se seu sistema é capaz de suportá-
 
 
 
-
 ## Desenvolvedores
+
+<table width="100%">
+  <tr>
+    <td align="center" style="width: 25%;">
+      <a href="https://github.com/GustavoS07" title="Perfil de Gustavo de Souza">
+        <img src="https://avatars.githubusercontent.com/u/133404275?v=4" width="100px;" alt="Foto de Gustavo de Souza"/><br>
+        <sub><b>Gustavo de Souza</b></sub>
+      </a>
+    </td>
+    <td align="center" style="width: 25%;">
+      <a href="https://github.com/EnzoCostaPaz" title="Perfil de Enzo Costa">
+        <img src="https://avatars.githubusercontent.com/u/133404019?v=4" width="100px;" alt="Foto de Enzo Costa"/><br>
+        <sub><b>Enzo Costa</b></sub>
+      </a>
+    </td>
+    <td align="center" style="width: 25%;">
+      <a href="https://github.com/osakirii" title="Perfil de Sakiri Moon">
+        <img src="https://avatars.githubusercontent.com/u/68735816?v=4" width="100px;" alt="Foto de Sakiri Moon"/><br>
+        <sub><b>Sakiri Moon</b></sub>
+      </a>
+    </td>
+    <td align="center" style="width: 25%;">
+      <a href="https://github.com/lipedeoliveira" title="Perfil de Felipe Vieira">
+        <img src="https://avatars.githubusercontent.com/u/129530532?v=4" width="100px;" alt="Foto de Felipe Vieira"/><br>
+        <sub><b>Felipe Vieira</b></sub>
+      </a>
+    </td>
+  </tr>
+</table>
