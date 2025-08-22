@@ -55,7 +55,7 @@ Siga os passos abaixo para clonar o repositório e configurar o projeto:
 
 > [!IMPORTANT]
 > Certifique-se de estar em um ambiente compatível (Linux ou Windows) antes de prosseguir.
-1. Baixe o modelo em <a href="https://github.com/GustavoS07/Agro-G.E.S.F/releases/tag/v1.0.0-pre">aqui</a>
+1. Baixe o modelo  <a href="https://github.com/GustavoS07/Agro-G.E.S.F/releases/tag/v1.0.0-pre">aqui</a>
 
 2. **Clone o repositório**
    ```bash
