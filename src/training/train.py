@@ -5,6 +5,16 @@ import copy
 from utils.utils import save_checkpoint, calculate_accuracy
 
 def train_model(model, dataloaders, dataset_sizes, criterion, optimizer, device, num_epochs):
+    """
+    Args:
+        model: O modelo a ser treinado.
+        dataloaders: Um dicionario com os dataloaders para treino e validação.
+        dataset_sizes: Um dicionario com o tamanho dos conjuntos de treino e validação.
+        criterion: A função de perda a ser utilizada.
+        optimizer: O otimizador a ser utilizado.
+        device: O dispositivo (GPU ou CPU) a ser utilizado.
+        num_epochs: O número de  épocas de treino.
+    """
     model = model.to(device)
     print(device)
     best_model_wts = copy.deepcopy(model.state_dict())

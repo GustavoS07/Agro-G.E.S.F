@@ -1,9 +1,11 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+import torch.ao.quantization as tq
+from torch.ao.quantization import QuantStub, DeQuantStub
 import numpy as np
-from sklearn.metrics import f1_socre, reacall_score, classification_report
+from sklearn.metrics import f1_score, reacall_score, classification_report
+
 
 
 class SEBlock(nn.Module):
@@ -27,7 +29,8 @@ class SEBlock(nn.Module):
 class CNN(nn.Module):
     def __init__(self,num_classes):
         super(CNN,self).__init__()
-        
+        self.quant = QuantStub()
+        self.dequant = DeQuantStub()
         self.features = nn.Sequential(
             
             #Primeira camada - Convolucional padrão
@@ -88,7 +91,7 @@ class CNN(nn.Module):
                 
         self.classifier = nn.Sequential (
             nn.Flatten(),
-            nn.Linear(512,256,bias=False),
+            nn.Linear(768,256,bias=False),
             nn.BatchNorm1d(256),
             nn.SiLU(inplace=True),
             nn.Dropout(0.5),
@@ -115,15 +118,26 @@ class CNN(nn.Module):
         return x
     
     def fuse_model(self):
-        import torch.ao.quantization as tq
-        for m in self.features:
-            if isinstance(m,nn.Sequential):
-                for idx in range(len(m)-2):
-                    if isinstance(m[idx],nn.Conv2d) and isinstance(m[idx+1],nn.BatchNorm2d) and isinstance(m[idx+2],nn.Silu):
-                        tq.fuse_modules(m[str(idx),str(idx+1),str(idx+2)],inplace=True)
-                        
-                    for m in self.features:
-                        if isinstance(m, nn.Sequential):
-                            for idx in range(len(m)-1):
-                                if isinstance(m[idx],nn.Conv2d) and isinstance(m[idx+1],nn.BatchNorm2d):
-                                    tq.fuse_modules(m[str(idx),str(idx+1)],inplace=True)
+        modules_to_fuse = []
+        for i, module in enumerate(self.features):
+            if isinstance(module,nn.Conv2d):
+            
+                if (i+2<len(self.features) and
+                isinstance(self.features[i+1],nn.BatchNorm2d)):
+                    if(isinstance(self.features[i+2],(nn.ReLU,nn.SiLU))):
+                        modules_to_fuse.append([f'features.{i}',f'features.{i+1}',f'features.{i+2}'])     
+                    else:
+                        modules_to_fuse.append([f'features.{i}',f'features.{i+1}'])                
+        #Fusão das camadas do classificador
+        modules_to_fuse.extend([
+            ['classifier.1','classifier.2']
+        ])
+        
+        #Aplicando a fusão
+        
+        for modulues_list in modules_to_fuse:
+            try:
+                tq.fuse_modules(self,modulues_list,inplace=True)
+            except Exception as e:
+                print(f'Não foi possível fundir {modulues_list}: {e}')
+        print('Fusão aplicada em {len(modules_to_fuse)} conjuntos de camadas.')
