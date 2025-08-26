@@ -22,13 +22,12 @@ def get_data_transforms():
         ]),
     }
     return data_transforms
-
-def get_dataloaders(data_dir,batch_size=32,num_workes=4):
+def get_dataloaders(data_dir,batch_size=32,num_workers=4):
     data_transforms = get_data_transforms()
     image_datasets = {x:datasets.ImageFolder(os.path.join(data_dir,x),data_transforms[x])
                   for x in ['train','val']}
     
-    dataloaders = {x:DataLoader(image_datasets[x],batch_size=32,shuffle=True,num_workers=4)
+    dataloaders = {x:DataLoader(image_datasets[x],batch_size=batch_size,shuffle=True,num_workers=num_workers)
                     for x in ['train','val']}
     
     datasets_size = {x:len(image_datasets[x]) for x in ['train','val']}
