@@ -132,7 +132,9 @@ def abrir_sobre_nos(dashboard):
         frame = ctk.CTkFrame(
             master=JanelaSobre, 
             width=frame_widht, 
-            height=frame_height, fg_color=cores['frame_bg'], corner_radius=20)
+            height=frame_height, 
+            fg_color=cores['frame_bg'], 
+            corner_radius=20)
         frame.place(x=x, y=y)
         
         ctk.CTkLabel(

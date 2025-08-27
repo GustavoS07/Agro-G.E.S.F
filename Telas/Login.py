@@ -45,8 +45,6 @@ def criar_campo_com_imagem(master, text, icon_path, size, show=None):
     entrada.pack(padx=60, pady=(0, 5), anchor="w")
     return entrada
 
-
-    
     
 # Interface 
 def main():
