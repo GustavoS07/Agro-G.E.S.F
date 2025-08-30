@@ -3,6 +3,7 @@ from PIL import Image, ImageDraw
 from pathlib import Path
 from Cor_Imgs import cores, caminho_imgs
 from SobreNos import abrir_sobre_nos
+from Grafico_Pragas import Abrir_Grafico_Praga
 
 
 # centralizar janelas
@@ -15,17 +16,6 @@ def centralizar_janela(window, width, height):
 
 # Função para criar imagem com bordas arredondadas
 def imagem_bordas_arredondadas(caminho_imagem, tamanho=(400, 400), raio=20):
-    """
-    Cria uma imagem com bordas arredondadas.
-    
-    Args:
-        caminho_imagem: Caminho para a imagem original
-        tamanho: Tupla com (largura, altura) da imagem final
-        raio: Raio dos cantos arredondados (em pixels)
-    
-    Returns:
-        Imagem PIL com bordas arredondadas
-    """
     # Abre e redimensiona a imagem
     img = Image.open(caminho_imagem).resize(tamanho).convert("RGBA")
     
@@ -50,17 +40,6 @@ def carregar_ctk_imagem(path, size):
 
 # Função para carregar imagem com bordas arredondadas para CTk
 def carregar_ctk_imagem_arredondada(path, size, raio=20):
-    """
-    Carrega uma imagem com bordas arredondadas para uso no CustomTkinter.
-    
-    Args:
-        path: Caminho da imagem
-        size: Tamanho (largura, altura)
-        raio: Raio dos cantos arredondados
-    
-    Returns:
-        CTkImage com bordas arredondadas
-    """
     if Path(path).is_file():
         # Cria a imagem com bordas arredondadas
         img_arredondada = imagem_bordas_arredondadas(path, size, raio)
@@ -121,9 +100,8 @@ def criar_frame_foto(master):
     btn_right.place(x=0, y=0)
     btn_right.configure(hover=False)
 
-   
 
-    # --- Distâncias configuráveis ---
+    # Distâncias configuráveis
     dist_setas = 20       # distância horizontal das setas até o frame da foto
     dist_frame_desc = 60  # distância horizontal do frame de descrição em relação à foto
     dist_topo_desc = 30   # distância vertical do topo da descrição em relação ao topo da foto
@@ -146,13 +124,11 @@ def criar_frame_foto(master):
 
 
 def exibir_foto_praga(caminho_img):
-    """Carrega e mostra a imagem com bordas arredondadas dentro do frame da praga"""
     global label_foto
-    # Usa a nova função para carregar imagem com bordas arredondadas
     img = carregar_ctk_imagem_arredondada(caminho_img, (400, 400), raio=30)  # raio de 30 pixels
     if img:
         label_foto.configure(image=img)
-        label_foto.image = img  # mantém referência da imagem
+        label_foto.image = img 
 
 def mostrar_proxima():
     """Mostra a próxima imagem da lista"""
@@ -298,19 +274,56 @@ def main():
     )
     barra_menu.pack(side="bottom", pady=10, anchor="s")
     
-    dash_buttom = ctk.CTkButton(barra_menu, image=img_home, text="", width=40, height=40, hover_color=cores['branco'], fg_color="transparent")
+    dash_buttom = ctk.CTkButton(
+        barra_menu, 
+        image=img_home, 
+        text="", 
+        width=40, 
+        height=40, 
+        hover_color=cores['branco'], 
+        fg_color="transparent")
     dash_buttom.pack(side="left", expand=True, padx=50, pady=10)
     
-    Glosso_buttom = ctk.CTkButton(barra_menu, image=img_gloss, text="", width=40, height=40, fg_color="transparent", hover_color=cores['branco'])
+    Glosso_buttom = ctk.CTkButton(
+        barra_menu, 
+        image=img_gloss, 
+        text="", 
+        width=40,
+        height=40, 
+        fg_color="transparent", 
+        hover_color=cores['branco'])
     Glosso_buttom.pack(side="left", expand=True, padx=50, pady=10)
     
-    Config_buttom = ctk.CTkButton(barra_menu, image=img_config, text="", width=40, height=40, fg_color="transparent", hover_color=cores['branco'])
+    Config_buttom = ctk.CTkButton(
+        barra_menu, 
+        image=img_config, 
+        text="", 
+        width=40, 
+        height=40, 
+        fg_color="transparent", 
+        hover_color=cores['branco'])
     Config_buttom.pack(side="left", expand=True, padx=50, pady=10)
 
-    Dados_buttom = ctk.CTkButton(barra_menu, image=img_dados, text="", width=40, height=40, fg_color="transparent", hover_color=cores['branco'])
+    Dados_buttom = ctk.CTkButton(
+        barra_menu, 
+        image=img_dados, 
+        text="", 
+        width=40, 
+        height=40, 
+        fg_color="transparent", 
+        hover_color=cores['branco'],  
+        command=lambda: [dashBoard.destroy(), Abrir_Grafico_Praga()])
     Dados_buttom.pack(side="left", expand=True, padx=50, pady=10)
     
-    Devs_buttom = ctk.CTkButton(barra_menu, text="", image=img_devs, width=40, height=40, fg_color="transparent", hover_color=cores['branco'], command=lambda: abrir_sobre_nos(dashBoard))
+    Devs_buttom = ctk.CTkButton(
+        barra_menu, 
+        text="", 
+        image=img_devs, 
+        width=40, 
+        height=40, 
+        fg_color="transparent", 
+        hover_color=cores['branco'], 
+        command=lambda: abrir_sobre_nos(dashBoard))
     Devs_buttom.pack(side="left", expand=True, padx=50, pady=10)
     
     # Criar o frame da foto + descrição
