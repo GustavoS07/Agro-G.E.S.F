@@ -31,7 +31,8 @@ def criar_campo_com_imagem(master, text, icon_path, size, show=None):
         text=text, 
         image=icon_img, 
         compound="right", 
-        font=("Lato", 15, "bold"))
+        font=("Lato", 15, "bold")
+        )
     label.pack(padx=60, pady=(5, 2), anchor="w")
 
     entrada = ctk.CTkEntry(
@@ -41,6 +42,7 @@ def criar_campo_com_imagem(master, text, icon_path, size, show=None):
         fg_color=cores['entrada_bg'],
         border_width=0,
         corner_radius=10,
+        text_color=cores['cor_texto'],
         show=show
     )
     entrada.pack(padx=60, pady=(0, 5), anchor="w")

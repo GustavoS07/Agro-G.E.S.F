@@ -41,7 +41,6 @@ def carregar_ctk_imagem(path, size):
 # Função para carregar imagem com bordas arredondadas para CTk
 def carregar_ctk_imagem_arredondada(path, size, raio=20):
     if Path(path).is_file():
-        # Cria a imagem com bordas arredondadas
         img_arredondada = imagem_bordas_arredondadas(path, size, raio)
         return ctk.CTkImage(light_image=img_arredondada, size=size)
     return None
@@ -150,6 +149,8 @@ def mostrar_anterior():
 def main():
     ctk.set_appearance_mode("light")
     ctk.set_default_color_theme("blue")
+    
+    from perfil import Abrir_Perfil # import local
     
     dashBoard = ctk.CTk()
     dashBoard.title("Dashboard")
@@ -301,7 +302,9 @@ def main():
         width=40, 
         height=40, 
         fg_color="transparent", 
-        hover_color=cores['branco'])
+        hover_color=cores['branco'],
+        command=lambda: Abrir_Perfil(dashBoard.destroy(), Abrir_Perfil())
+        )
     Config_buttom.pack(side="left", expand=True, padx=50, pady=10)
 
     Dados_buttom = ctk.CTkButton(
