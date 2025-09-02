@@ -3,6 +3,7 @@ from PIL import Image
 import customtkinter as ctk
 from Cor_Imgs import cores, caminho_imgs
 import Dashboard
+from Data.database import  cadastrarUsuario, tentarLogin
 
 
 # Funções Utilitárias
