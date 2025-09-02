@@ -29,6 +29,9 @@ def Abrir_Grafico_Praga():
     ctk.set_appearance_mode("light")
     ctk.set_default_color_theme("blue")
     
+    from perfil import Abrir_Perfil  # import Local 
+
+    
     grafico_win = ctk.CTk()
     grafico_win.title("Gráfico de Detecção")
     centralizar_janela(grafico_win, 1200, 700)
@@ -127,7 +130,7 @@ def Abrir_Grafico_Praga():
     height=40, 
     hover_color=cores['branco'], 
     fg_color="transparent",
-    command=lambda: [grafico_win.destroy(), __import__("Dashboard").main()]
+    command=lambda: [grafico_win.destroy(), __import__("Dashboard").main()] #faz o import por aqui
     )
     dash_buttom.pack(side="left", expand=True, padx=50, pady=10)
     
@@ -147,7 +150,9 @@ def Abrir_Grafico_Praga():
         width=40, 
         height=40, 
         fg_color="transparent", 
-        hover_color=cores['branco'])
+        hover_color=cores['branco'],
+        command=lambda: Abrir_Perfil(grafico_win.destroy(), Abrir_Perfil())
+        )
     Config_buttom.pack(side="left", expand=True, padx=50, pady=10)
 
     Dados_buttom = ctk.CTkButton(

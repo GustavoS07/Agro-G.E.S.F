@@ -19,7 +19,8 @@ cores = {
     'preto': "#000000",
     'Fundo_Menu': "#a4c639",
     'Fundo_azul': "#4A6FA5",
-    'Borda_Frame': "#E0E556"
+    'Borda_Frame': "#E0E556",
+    'cor_texto': "#22532C"
 }
 
 caminho_imgs = {
@@ -40,6 +41,8 @@ caminho_imgs = {
     'folha_dash_menu_superior': BASE_DIR / "Imgs/visu_element/Folha_dash_superior_esquerdo.png",
     'Seta_dash_direita': BASE_DIR/ "Imgs/visu_element/Seta_direita.png",
     'Seta_dash_esquerda': BASE_DIR/ "Imgs/visu_element/Seta_esquerda.png",
+    'Perfil_default': BASE_DIR/ "Imgs/visu_element/Teste_Img2.png",
+    'Perfil_button': BASE_DIR/ "Imgs/visu_element/Alterar_perfil_button.png",
 
     
     
