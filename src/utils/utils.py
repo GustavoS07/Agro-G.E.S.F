@@ -9,7 +9,8 @@ import copy
 import os
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-
+import json
+from datetime import datetime
 def save_checkpoint(model,optimizer,epoch,path='checkpoint.pth'):
     torch.save({
         'epoch':epoch,
@@ -97,18 +98,17 @@ class TrainingMonitor():
         return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
     
 
+    ## Função para logar o resumo da epoca
     def log_epoch_summary(self, epoch, num_epochs, history, best_acc, epoch_time):
         print(f"\n{'='*50}")
         print(f"Resumo da epoca {epoch+1}/{num_epochs}")
         print(f"{'='*50}")
         print(f"Tempo de treinamento: {self.format_time(epoch_time)}")
         
-        # Verificar se existem dados antes de acessar
         if len(history['train_loss']) > 0:
             print(f"Train Loss: {history['train_loss'][-1]:.4f}")
             print(f"Train Acurácia: {history['train_acc'][-1]:.4f}")
         
-        # Só mostrar validação se existir
         if len(history.get('val_loss', [])) > 0:
             print(f"Val Loss: {history['val_loss'][-1]:.4f}")
             print(f"Val Acurácia: {history['val_acc'][-1]:.4f}")
@@ -124,3 +124,80 @@ class TrainingMonitor():
                 print(f"Tempo total: {self.format_time(total_time)} | ETA: {self.format_time(eta)}")
         
         print(f"{'='*50}\n")
+        
+## Função para salvar a estrutura do dataset
+def save_dataset_structure(data_dir,save_path='dataset_structure.json'):
+    
+    dataset_info =  {
+        'timestamp':datetime.now().isoformat(),
+        'data_directory':data_dir,
+        'splits':{}
+    }
+    for split in ['train','val']:
+        split_path = os.path.join(data_dir,split)
+
+        if not os.path.exists(split_path):
+            print(f'Slipt {split} não encontrado')
+            continue
+        classes = sorted([d for d in os.listdir(split_path)
+                         if os.path.isdir(os.path.join(split_path,d))])
+        split_info={
+            'path':split_path,
+            'classes':classes,
+            'class_to_idx':{cls:idx for idx,cls in enumerate(classes)},
+            'idx_to_class':{idx:cls for idx,cls in enumerate(classes)},
+            'class_counts':{},
+            'total_samples':0     
+        }
+        
+        for class_name in classes:
+            class_path = os.path.join(split_path,class_name)
+            if os.path.exists(class_path):
+                images = [f for f in os.listdir(class_path)
+                          if f.lower().endswith(('.jpg','jpeg','png'))]
+                split_info['class_counts'][class_name] = len(images)
+                split_info['total_samples']+=len(images)
+            else:
+                split_info['class_counts'][class_name] = 0
+        dataset_info['splits'][split] = split_info
+        
+        print(f'{split.upper()}:')
+        print(f'    Total de classes: {len(classes)}')
+        print(f'    Total de imagens: {split_info["total_samples"]}')
+        
+        
+        for i, cls in enumerate(classes):
+            count = split_info['class_counts'][cls]
+        with open(save_path,'w',encoding='utf-8') as f:
+            json.dump(dataset_info,f,indent=2,ensure_ascii=False)
+        print(f' Estrutura do dataset salva em {save_path}')
+        return dataset_info
+    
+def save_model_complete(model, save_path, dataset_info=None, optimizer=None, 
+                       epoch=None, history=None, best_acc=None):
+    print(f"Salvando modelo em {save_path}")
+    
+    model_data = {
+        'model_state_dict': model.state_dict(),  
+        'model_architecture': {
+            'class_name': model.__class__.__name__,
+            'num_classes': len(dataset_info['splits']['train']['classes']) if dataset_info else None
+        },
+        'timestamp': datetime.now().isoformat(),
+        'training_info': {
+            'epoch': epoch,
+            'best_acc': best_acc,
+            'history': history,
+            'total_params': sum(p.numel() for p in model.parameters())
+        }
+    }
+    
+    if dataset_info is not None:
+        model_data['dataset_info'] = dataset_info
+    
+    if optimizer is not None:
+        model_data['optimizer_state_dict'] = optimizer.state_dict()
+    
+    torch.save(model_data, save_path)
+    print(f"Modelo salvo com {model_data['training_info']['total_params']:,} parâmetros")
+    return True

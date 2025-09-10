@@ -1,253 +1,231 @@
 #!/usr/bin/env python3
 """
-Versão com arquitetura EXATA baseada na análise do state_dict
+Script para analisar a performance do modelo e entender onde está confundindo
 """
 
 import torch
-import torch.nn as nn
-import torchvision.transforms as transforms
-from PIL import Image
 import torch.nn.functional as F
-import traceback
+from PIL import Image
+import os
+import numpy as np
+from collections import defaultdict, Counter
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import confusion_matrix, classification_report
+import pandas as pd
+
+from teste_image_cpu import PlantDiseasePredictor
 
 
-class ExactCNN(nn.Module):
-    """
-    Arquitetura exata baseada no state_dict analisado:
-    
-    Features:
-    - features.0: Conv2d(3, 32, 3)  
-    - features.1: BatchNorm2d(32)
-    - features.4: Conv2d(32, 64, 3)
-    - features.5: BatchNorm2d(64) 
-    - features.8: Conv2d(64, 128, 3)
-    - features.9: BatchNorm2d(128)
-    - features.12: Conv2d(128, 256, 3)
-    - features.13: BatchNorm2d(256)
-    
-    Classifier:
-    - classifier.1: Linear(50176, 512)
-    - classifier.4: Linear(512, 6)
-    """
-    
-    def __init__(self, num_classes=6):
-        super(ExactCNN, self).__init__()
+class ModelAnalyzer:
+    def __init__(self, predictor, val_data_path):
+        self.predictor = predictor
+        self.val_data_path = val_data_path
+        self.results = []
+        self.predictions = []
+        self.true_labels = []
         
-        # Features exatas conforme o state_dict
-        self.features = nn.Sequential(
-            # Bloco 1 (índices 0-3)
-            nn.Conv2d(3, 32, kernel_size=3, padding=1),     # features.0
-            nn.BatchNorm2d(32),                             # features.1
-            nn.ReLU(inplace=True),                          # features.2
-            nn.MaxPool2d(2, 2),                             # features.3
+    def analyze_validation_set(self):
+        """Analisa todo o conjunto de validação"""
+        print("🔍 Analisando conjunto de validação...")
+        
+        class_stats = defaultdict(lambda: {'correct': 0, 'total': 0, 'predictions': []})
+        
+        for class_idx, class_name in enumerate(self.predictor.classes):
+            class_path = os.path.join(self.val_data_path, class_name)
             
-            # Bloco 2 (índices 4-7)
-            nn.Conv2d(32, 64, kernel_size=3, padding=1),    # features.4
-            nn.BatchNorm2d(64),                             # features.5
-            nn.ReLU(inplace=True),                          # features.6
-            nn.MaxPool2d(2, 2),                             # features.7
+            if not os.path.exists(class_path):
+                print(f"⚠️  Diretório não encontrado: {class_path}")
+                continue
             
-            # Bloco 3 (índices 8-11)
-            nn.Conv2d(64, 128, kernel_size=3, padding=1),   # features.8
-            nn.BatchNorm2d(128),                            # features.9
-            nn.ReLU(inplace=True),                          # features.10
-            nn.MaxPool2d(2, 2),                             # features.11
+            print(f"Analisando classe: {class_name}")
             
-            # Bloco 4 (índices 12-15)
-            nn.Conv2d(128, 256, kernel_size=3, padding=1),  # features.12
-            nn.BatchNorm2d(256),                            # features.13
-            nn.ReLU(inplace=True),                          # features.14
-            nn.MaxPool2d(2, 2),                             # features.15
-        )
-        
-        # Classifier exato conforme o state_dict
-        # Input size para Linear: 50176 = 256 * 14 * 14 (assumindo input 224x224)
-        self.classifier = nn.Sequential(
-            nn.Dropout(0.5),                                # classifier.0
-            nn.Linear(50176, 512),                          # classifier.1
-            nn.ReLU(inplace=True),                          # classifier.2
-            nn.Dropout(0.5),                                # classifier.3
-            nn.Linear(512, num_classes)                     # classifier.4
-        )
-    
-    def forward(self, x):
-        x = self.features(x)
-        x = torch.flatten(x, 1)
-        x = self.classifier(x)
-        return x
-
-
-class PlantDiseasePredictor:
-    def __init__(self, model_path, device='cpu'):
-        self.device = torch.device(device)
-        self.classes = [
-            'Diabrotica_spreciosa',
-            'Fungo', 
-            'Lagarta',
-            'Pinta_Preta',
-            'Requeima',
-            'Saudavel'
-        ]
-        
-        # Transform para preprocessamento das imagens
-        # IMPORTANTE: Usar mesmo tamanho que foi usado no treinamento
-        self.transform = transforms.Compose([
-            transforms.Resize((224, 224)),  # Assumindo 224x224 baseado na dimensão Linear
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], 
-                               std=[0.229, 0.224, 0.225])
-        ])
-        
-        print(f"🔧 Inicializando preditor com device: {self.device}")
-        print(f"📋 Classes: {self.classes}")
-        
-        # Carregar modelo
-        self.model = self._load_exact_model(model_path)
-        
-        if self.model is None:
-            raise Exception("Falha ao carregar o modelo")
-        
-        print("✅ Modelo carregado e configurado com sucesso!")
-
-    def _load_exact_model(self, model_path):
-        """Carrega modelo com arquitetura exata"""
-        print(f"📦 Carregando modelo de: {model_path}")
-        
-        try:
-            # Carregar checkpoint
-            checkpoint = torch.load(model_path, map_location=self.device)
-            print(f"✅ Checkpoint carregado. Tipo: {type(checkpoint)}")
+            # Pegar algumas imagens da classe
+            image_files = [f for f in os.listdir(class_path) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
             
-            if isinstance(checkpoint, dict):
-                print(f"🔑 Chaves disponíveis: {list(checkpoint.keys())}")
+            # Limitar a análise para não demorar muito (pegar 20 imagens por classe)
+            sample_size = min(20, len(image_files))
+            image_files = image_files[:sample_size]
+            
+            for img_file in image_files:
+                img_path = os.path.join(class_path, img_file)
                 
-                # Extrair state_dict
-                if 'model_state_dict' in checkpoint:
-                    state_dict = checkpoint['model_state_dict']
-                    print("✅ Usando 'model_state_dict'")
-                elif 'state_dict' in checkpoint:
-                    state_dict = checkpoint['state_dict']
-                    print("✅ Usando 'state_dict'")
+                try:
+                    result = self.predictor.predict_single_image(img_path)
+                    
+                    if result:
+                        predicted_class = result['predicted_class']
+                        confidence = result['confidence']
+                        predicted_idx = result['predicted_idx']
+                        
+                        # Registrar resultado
+                        is_correct = predicted_class == class_name
+                        class_stats[class_name]['total'] += 1
+                        if is_correct:
+                            class_stats[class_name]['correct'] += 1
+                        
+                        class_stats[class_name]['predictions'].append({
+                            'image': img_file,
+                            'predicted': predicted_class,
+                            'confidence': confidence,
+                            'correct': is_correct
+                        })
+                        
+                        # Para matriz de confusão
+                        self.true_labels.append(class_idx)
+                        self.predictions.append(predicted_idx)
+                        
+                        # Mostrar erro se confiança alta mas errado
+                        if not is_correct and confidence > 0.7:
+                            print(f"  ❌ {img_file}: {class_name} → {predicted_class} ({confidence:.3f})")
+                        elif is_correct and confidence > 0.8:
+                            print(f"  ✅ {img_file}: {confidence:.3f}")
+                            
+                except Exception as e:
+                    print(f"  ⚠️  Erro processando {img_file}: {e}")
+        
+        return class_stats
+    
+    def print_analysis_report(self, class_stats):
+        """Imprime relatório detalhado da análise"""
+        print("\n" + "="*60)
+        print("📊 RELATÓRIO DE ANÁLISE DO MODELO")
+        print("="*60)
+        
+        total_correct = 0
+        total_images = 0
+        
+        print(f"{'Classe':<20} {'Accuracy':<10} {'Total':<8} {'Erros Principais'}")
+        print("-" * 60)
+        
+        confusion_data = defaultdict(Counter)
+        
+        for class_name, stats in class_stats.items():
+            if stats['total'] > 0:
+                accuracy = stats['correct'] / stats['total']
+                total_correct += stats['correct']
+                total_images += stats['total']
+                
+                # Contar principais confusões
+                wrong_predictions = [p['predicted'] for p in stats['predictions'] if not p['correct']]
+                main_confusions = Counter(wrong_predictions).most_common(2)
+                confusion_str = ', '.join([f"{cls}({cnt})" for cls, cnt in main_confusions])
+                
+                print(f"{class_name:<20} {accuracy:<10.3f} {stats['total']:<8} {confusion_str}")
+                
+                # Para análise mais detalhada
+                for pred_info in stats['predictions']:
+                    if not pred_info['correct']:
+                        confusion_data[class_name][pred_info['predicted']] += 1
+        
+        overall_accuracy = total_correct / total_images if total_images > 0 else 0
+        print("-" * 60)
+        print(f"{'OVERALL':<20} {overall_accuracy:<10.3f} {total_images:<8}")
+        
+        # Principais problemas
+        print(f"\n🎯 PRINCIPAIS CONFUSÕES:")
+        for true_class, pred_counter in confusion_data.items():
+            if pred_counter:
+                main_confusion = pred_counter.most_common(1)[0]
+                print(f"  {true_class} → {main_confusion[0]} ({main_confusion[1]} vezes)")
+    
+    def analyze_confidence_distribution(self, class_stats):
+        """Analisa a distribuição de confiança das predições"""
+        print(f"\n📈 ANÁLISE DE CONFIANÇA:")
+        
+        correct_confidences = []
+        incorrect_confidences = []
+        
+        for class_name, stats in class_stats.items():
+            for pred in stats['predictions']:
+                if pred['correct']:
+                    correct_confidences.append(pred['confidence'])
                 else:
-                    state_dict = checkpoint
-                    print("⚠️  Usando checkpoint completo como state_dict")
-            else:
-                print("❌ Checkpoint não é um dicionário")
-                return None
-            
-            # Verificar dimensões do classifier para confirmar input size
-            if 'classifier.1.weight' in state_dict:
-                classifier_input_size = state_dict['classifier.1.weight'].shape[1]
-                print(f"📏 Input size do classifier: {classifier_input_size}")
-                
-                # Calcular qual seria o tamanho da imagem necessário
-                # classifier input = channels * height * width após features
-                # 50176 = 256 * h * w
-                # Assumindo 4 MaxPool2d (2x2), redução total = 16x
-                # Se input original for 224x224, após features será 14x14
-                # 256 * 14 * 14 = 50176 ✓
-                
-                expected_input_size = 50176
-                if classifier_input_size != expected_input_size:
-                    print(f"⚠️  Input size inesperado: {classifier_input_size}, esperado: {expected_input_size}")
-                    
-                    # Tentar calcular tamanho necessário
-                    feature_h_w = classifier_input_size // 256
-                    feature_size = int(feature_h_w ** 0.5)
-                    original_size = feature_size * 16  # 4 pools de 2x2
-                    
-                    print(f"💡 Sugestão: usar imagens {original_size}x{original_size}")
-                    
-                    # Ajustar transform se necessário
-                    if original_size != 224:
-                        print(f"🔧 Ajustando transform para {original_size}x{original_size}")
-                        self.transform = transforms.Compose([
-                            transforms.Resize((original_size, original_size)),
-                            transforms.ToTensor(),
-                            transforms.Normalize(mean=[0.485, 0.456, 0.406], 
-                                               std=[0.229, 0.224, 0.225])
-                        ])
-            
-            # Detectar número de classes
-            if 'classifier.4.weight' in state_dict:
-                num_classes = state_dict['classifier.4.weight'].shape[0]
-                print(f"🎯 Número de classes detectado: {num_classes}")
-            else:
-                num_classes = len(self.classes)
-                print(f"⚠️  Usando número padrão de classes: {num_classes}")
-            
-            # Criar modelo com arquitetura exata
-            print("🏗️  Criando modelo com arquitetura exata...")
-            model = ExactCNN(num_classes)
-            
-            # Carregar state_dict
-            print("📥 Carregando state_dict...")
-            model.load_state_dict(state_dict, strict=True)
-            
-            # Configurar para inferência
-            model.to(self.device)
-            model.eval()
-            
-            print("✅ Modelo carregado com arquitetura exata!")
-            return model
-            
-        except Exception as e:
-            print(f"❌ Erro ao carregar modelo: {e}")
-            traceback.print_exc()
-            return None
+                    incorrect_confidences.append(pred['confidence'])
+        
+        if correct_confidences:
+            print(f"Confiança média (corretas): {np.mean(correct_confidences):.3f}")
+            print(f"Confiança mediana (corretas): {np.median(correct_confidences):.3f}")
+        
+        if incorrect_confidences:
+            print(f"Confiança média (incorretas): {np.mean(incorrect_confidences):.3f}")
+            print(f"Confiança mediana (incorretas): {np.median(incorrect_confidences):.3f}")
+        
+        # Verificar predições incorretas com alta confiança (problema sério)
+        high_conf_wrong = [c for c in incorrect_confidences if c > 0.8]
+        if high_conf_wrong:
+            print(f"⚠️  Predições incorretas com alta confiança (>0.8): {len(high_conf_wrong)}")
+            print(f"   Isso indica overfitting ou dados problemáticos!")
+    
+    def suggest_improvements(self, class_stats):
+        """Sugere melhorias baseadas na análise"""
+        print(f"\n💡 SUGESTÕES DE MELHORIA:")
+        
+        # Classes com baixa performance
+        low_performance = []
+        for class_name, stats in class_stats.items():
+            if stats['total'] > 0:
+                accuracy = stats['correct'] / stats['total']
+                if accuracy < 0.7:  # Menos de 70%
+                    low_performance.append((class_name, accuracy))
+        
+        if low_performance:
+            print(f"📉 Classes com baixa performance (<70%):")
+            for class_name, acc in low_performance:
+                print(f"   - {class_name}: {acc:.1%}")
+            print(f"   → Revisar qualidade das imagens dessas classes")
+            print(f"   → Considerar mais data augmentation")
+            print(f"   → Verificar se há overlabeling ou mislabeling")
+        
+        # Análise geral
+        total_accuracy = sum(s['correct'] for s in class_stats.values()) / sum(s['total'] for s in class_stats.values())
+        
+        if total_accuracy < 0.8:
+            print(f"⚠️  Accuracy geral baixa ({total_accuracy:.1%}). Considerações:")
+            print(f"   1. Aumentar épocas de treinamento")
+            print(f"   2. Ajustar learning rate")
+            print(f"   3. Usar data augmentation mais agressivo")
+            print(f"   4. Considerar transfer learning (pré-trained model)")
+            print(f"   5. Revisar qualidade e diversidade dos dados")
 
-    def predict_single_image(self, image_path):
-        """Faz predição para uma única imagem"""
-        if self.model is None:
-            print("❌ Modelo não carregado!")
-            return None
-        
-        try:
-            # Carregar e preprocessar a imagem
-            image = Image.open(image_path).convert('RGB')
-            input_tensor = self.transform(image).unsqueeze(0).to(self.device)
-            
-            print(f"📏 Tensor shape: {input_tensor.shape}")
-            
-            # Fazer predição
-            with torch.no_grad():
-                outputs = self.model(input_tensor)
-                probabilities = F.softmax(outputs[0], dim=0)
-                
-                # Obter predição
-                predicted_idx = torch.argmax(probabilities).item()
-                confidence = probabilities[predicted_idx].item()
-                predicted_class = self.classes[predicted_idx]
-                
-                # Criar dicionário com todas as probabilidades
-                all_probabilities = {}
-                for i, class_name in enumerate(self.classes):
-                    all_probabilities[class_name] = probabilities[i].item()
-                
-                return {
-                    'predicted_class': predicted_class,
-                    'confidence': confidence,
-                    'predicted_idx': predicted_idx,
-                    'all_probabilities': all_probabilities
-                }
-        
-        except Exception as e:
-            print(f"❌ Erro na predição: {e}")
-            traceback.print_exc()
-            return None
 
-    def get_model_info(self):
-        """Retorna informações sobre o modelo"""
-        if self.model is None:
-            return "Modelo não carregado"
+def main():
+    # Caminhos - ajustar conforme necessário
+    model_path = "../outputs/modelo_final.pth"
+    val_data_path = "../../data/val"  # Ajustar para seu caminho
+    
+    try:
+        # Importar e inicializar preditor
+        # Assumindo que você tem o código do preditor disponível
+        print("Carregando modelo...")
+        predictor = PlantDiseasePredictor(model_path, device='cpu')
         
-        total_params = sum(p.numel() for p in self.model.parameters())
-        trainable_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
+        print("⚠️  Para executar esta análise:")
+        print("1. Certifique-se que o preditor está funcionando")
+        print("2. Ajuste os caminhos do modelo e dados de validação")
+        print("3. Execute a análise completa")
         
-        return {
-            'total_parameters': total_params,
-            'trainable_parameters': trainable_params,
-            'architecture': str(self.model),
-            'device': str(self.device),
-            'classes': self.classes
-        }
+        print(f"\n🔍 INVESTIGAÇÕES RECOMENDADAS:")
+        print(f"1. Verificar se há imbalance real nos dados")
+        print(f"2. Analisar qualidade visual das imagens")
+        print(f"3. Verificar se preprocessing está correto")
+        print(f"4. Revisar arquitetura vs complexidade do problema")
+        print(f"5. Analisar curvas de loss durante treinamento")
+        
+        # Se tiver o preditor funcionando, descomente:
+        analyzer = ModelAnalyzer(predictor, val_data_path)
+        class_stats = analyzer.analyze_validation_set()
+        analyzer.print_analysis_report(class_stats)
+        analyzer.analyze_confidence_distribution(class_stats)
+        analyzer.suggest_improvements(class_stats)
+        
+        print("Classes no modelo:")
+        for i, classe in enumerate(predictor.classes):
+            print(f"{i}: {classe}")
+    except Exception as e:
+        print(f"Erro: {e}")
+        print("Certifique-se que todos os caminhos estão corretos")
+
+
+if __name__ == "__main__":
+    main()

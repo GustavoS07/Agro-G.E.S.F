@@ -2,6 +2,13 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 import os
 
+import os
+train_dir = "../data/train"  # ajuste o caminho
+classes_from_folders = sorted(os.listdir(train_dir))
+print("Ordem real das classes (baseada nos diretórios):")
+for i, classe in enumerate(classes_from_folders):
+    print(f"{i}: {classe}")
+    
 def get_data_transforms():
     data_transforms = {
         'train': transforms.Compose ([
@@ -22,7 +29,22 @@ def get_data_transforms():
         ]),
     }
     return data_transforms
-def get_dataloaders(data_dir,batch_size=32,num_workers=4):
+def get_dataloaders(data_dir,batch_size,num_workers):
+    
+    train_path = os.path.join(data_dir,'train')
+    val_path = os.path.join(data_dir,'val')
+    
+    print(f"DEBUG - data_dir: {data_dir}")
+    print(f"DEBUG - train_path: {train_path}")
+    print(f"DEBUG - val_path: {val_path}")
+    print(f"DEBUG - train existe: {os.path.exists(train_path)}")
+    print(f"DEBUG - val existe: {os.path.exists(val_path)}")
+
+    if not os.path.exists(train_path):
+        raise FileNotFoundError(f"Diretório train não encontrado: {train_path}")
+    if not os.path.exists(val_path):
+        raise FileNotFoundError(f"Diretório val não encontrado: {val_path}")
+    
     data_transforms = get_data_transforms()
     image_datasets = {x:datasets.ImageFolder(os.path.join(data_dir,x),data_transforms[x])
                   for x in ['train','val']}
