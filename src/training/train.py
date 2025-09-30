@@ -124,8 +124,8 @@ def train_model(
             if phase == 'val' and epoch_acc > best_acc:
                 best_acc = epoch_acc
                 best_model_wts = copy.deepcopy(model.state_dict())
-                save_checkpoint(model, optimizer, epoch)
-                      
+                save_checkpoint(model, optimizer, epoch, best_acc, checkpoint_dir="checkpoints")
+
         epoch_time = time.time() - epoch_start_time
         
         if len(history['train_loss']) > 0 and len(history['val_loss']) > 0:

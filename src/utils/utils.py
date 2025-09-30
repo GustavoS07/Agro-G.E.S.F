@@ -11,14 +11,25 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 import json
 from datetime import datetime
-def save_checkpoint(model,optimizer,epoch,path='checkpoint.pth'):
-    torch.save({
-        'epoch':epoch,
-        'model_state_dict':model.state_dict(),
-        'optimizer_state_dict':optimizer.state_dict(),
-        
-    },path)
-    
+def save_checkpoint(model,optimizer,epoch,best_acc=None,checkpoint_dir="checkpoints"):
+    if not os.path.exists(checkpoint_dir):
+        os.makedirs(checkpoint_dir)
+
+    checkpoint_path = os.path.join(checkpoint_dir, f"epoch_{epoch+1}.pth")
+
+    last_path = os.path.join(checkpoint_dir, "last.pth")
+
+    checkpoint={
+        "epoch":epoch,
+        "model_state_dict":model.state_dict(),
+        "optimizer_state_dict":optimizer.state_dict(),
+        "best_acc":best_acc,
+        "froze_params":[not p.requires_grad for p in model.parameters()],
+    }
+    torch.save(checkpoint, checkpoint_path)
+    torch.save(checkpoint, last_path)
+    print(f"Checkpoint saved to {checkpoint_path}")
+
 def calculate_accuracy(outputs,labels):
     _, preds = torch.max(outputs,1)
     correct = torch.sum(preds == labels).item()
@@ -191,13 +202,18 @@ def save_model_complete(model, save_path, dataset_info=None, optimizer=None,
             'total_params': sum(p.numel() for p in model.parameters())
         }
     }
-    
+
     if dataset_info is not None:
         model_data['dataset_info'] = dataset_info
     
     if optimizer is not None:
         model_data['optimizer_state_dict'] = optimizer.state_dict()
-    
+
+    model_data['device'] = str(next(model.parameters()).device)
+    model_data['is_best'] = (best_acc == max(history['val_acc'])) if history else None
+    model_data['model_architecture']['hyperparams'] = {
+        'dropout_rate': getattr(model, 'dropout_rate', None)
+    }
     torch.save(model_data, save_path)
     print(f"Modelo salvo com {model_data['training_info']['total_params']:,} parâmetros")
     return True

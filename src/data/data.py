@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 import os
 
 import os
-train_dir = "../data/train"  # ajuste o caminho
+train_dir = "./data/train"  # ajuste o caminho
 classes_from_folders = sorted(os.listdir(train_dir))
 print("Ordem real das classes (baseada nos diretórios):")
 for i, classe in enumerate(classes_from_folders):

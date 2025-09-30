@@ -9,42 +9,41 @@ from utils.utils import (
     save_model_complete,
     
 )
+from models.cnn import CNN
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import os
+from torch.utils.data import Subset
+import random
+from PIL import ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+
 data_dir = os.path.join(os.path.dirname(__file__),'..','data')
 data_dir = os.path.abspath(data_dir)
 
-def get_resnet18(num_classes):
-    model = models.resnet18(weights='IMAGENET1K_V1')
+def get_model(num_classes,class_names):
+    model = CNN(num_classes=len(class_names))
     
-    for param in model.parameters():
-        param.requires_grad = False
-    model.fc = nn.Sequential(
-        nn.Linear(model.fc.in_features,256,bias=False),
-        nn.BatchNorm1d(256),
-        nn.ReLU(inplace=True),
-        nn.Dropout(0.3),
-        nn.Linear(256,num_classes)
-        )
+    in_features = model.classifier[-1].in_features
+    model.classifier[-1] = nn.Linear(
+        in_features,
+        len(class_names)
+    )
     return model
 def main():
     ## Parte por identificar o dispositivo sendo usado
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
     print('\n Salvando estrutura do dataset')
     dataset_info = save_dataset_structure(data_dir,'dataset_structure.json')    
     ## Definindo o tamanho do batch
-    batch_size = 32
+    batch_size = 64
     num_workers = 4
     print(f'Tamanho do batch: {batch_size}')
     #Definindo quantas épocas o modelo vai treinar
     
     num_epochs = 60
-    print(f'Número de épocas: {num_epochs}')
-
     ##Carregando da função data.py os dataloaders, o tamanho dos datasets e o nome das classes
     try:
         dataloaders,dataset_sizes,class_names = get_dataloaders(data_dir, batch_size=batch_size,num_workers=num_workers)
@@ -55,13 +54,17 @@ def main():
         return
     
     ## Definindo o modelo com a estrutura da CNN dentor de cnn.py
-    model = get_resnet18(num_classes=len(class_names))
+    model = get_model(num_classes=len(class_names),class_names=class_names)
     print(f'Modelo: {model} com {len(class_names)} classes')
     ## Definindo a função correpsondente a cálculo de loss
     criterion = nn.CrossEntropyLoss()
     
     ## Definindo o optimizador
-    optimizer = optim.AdamW(model.fc.parameters(),lr=1e-4,weight_decay=1e-4)
+    optimizer = optim.AdamW(
+        filter(lambda p: p.requires_grad,model.parameters()),
+        lr=1e-4,
+        weight_decay=1e-4
+    )
     print("\n"+"-"*20)
     
     try:
