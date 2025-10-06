@@ -3,7 +3,7 @@ from PIL import Image
 import customtkinter as ctk
 from Cor_Imgs import cores, caminho_imgs
 import Dashboard
-from Data.database import  cadastrarUsuario, tentarLogin
+from Data.database import  cadastrarUsuario, tentarLogin,createTables
 
 
 # Funções Utilitárias
@@ -51,6 +51,10 @@ def criar_campo_com_imagem(master, text, icon_path, size, show=None):
     
 # Interface 
 def main():
+    try:
+        createTables()
+    except:
+        pass # ---> Caso a tabela já exista
     ctk.set_appearance_mode("light")
     ctk.set_default_color_theme("blue")
 
@@ -61,10 +65,35 @@ def main():
     
     
     def abrir_dashboard():
-        janela.destroy()   # fecha login
-        Dashboard.main()   # abre dashboard
-    
+        nome = entrada_nome_login.get()
+        senha = entrada_senha_login;get()
+
+        if not nome or not senha:
+            #Trocar por ctk
+            print("Preencha todos os campos")
+            return
+        
+        def sucesso():
+            janela.destroy() 
+            Dashboard.main()   # abre dashboard
+    tentarLogin(nome,senha,on_sucess=sucesso)
     if Path(caminho_imgs['icon']).is_file():janela.iconbitmap(caminho_imgs['icon'])
+    def realizar_cadastro():
+        nome = entrada_nome_cad.get()
+        email = entrada_email_cad.get()
+        senha = entrada_senha_cad.get()
+        rep_senha = entrada_nep_senha.get()
+    
+        if not nome or not email or not senha or not rep_senha:
+            print("Preencha todos os campos") #---> Colocar em CTK
+            return
+        if senha != rep_senha:
+            print("As senhas não coincidem") #---> Colocar em CTK
+            return
+        
+        cadastrarUsuario(nome,email,senha,rep_senha,"")
+        print("Cadastro realizado com sucesso") #---> Colocar em CTK
+        mostrar_login()
 
     # Cria o frame basico de Login
     frame_login = ctk.CTkFrame(
@@ -138,8 +167,8 @@ def main():
             image=logo_img, 
             text="").pack(pady=(5, 10))
 
-    criar_campo_com_imagem(frame_login, "Nome   ", caminho_imgs['conta'], (35, 35))
-    criar_campo_com_imagem(frame_login, "Senha   ", caminho_imgs['senha'], (35, 35), show="*")
+    entrada_nome_login = criar_campo_com_imagem(frame_login, "Nome   ", caminho_imgs['conta'], (35, 35))
+    entrada_senha_login = criar_campo_com_imagem(frame_login, "Senha   ", caminho_imgs['senha'], (35, 35), show="*")
 
     Login_Buttom = ctk.CTkButton(
         frame_login, 
@@ -181,10 +210,10 @@ def main():
             image=logo_img2, 
             text="").pack(pady=(5, 10))
 
-    criar_campo_com_imagem(frame_cadastro, "Nome   ", caminho_imgs['conta'], (35, 35))
-    criar_campo_com_imagem(frame_cadastro, "Email   ", caminho_imgs['email'], (35, 35))
-    criar_campo_com_imagem(frame_cadastro, "Senha   ", caminho_imgs['senha'], (35, 35), show="*")
-    criar_campo_com_imagem(frame_cadastro, "Repetir Senha   ", None, (0, 0), show="*")
+    entrada_nome_cad = criar_campo_com_imagem(frame_cadastro, "Nome   ", caminho_imgs['conta'], (35, 35))
+    entrada_email_cad = criar_campo_com_imagem(frame_cadastro, "Email   ", caminho_imgs['email'], (35, 35))
+    entrada_senha_cad = criar_campo_com_imagem(frame_cadastro, "Senha   ", caminho_imgs['senha'], (35, 35), show="*")
+    entrada_rep_senha_cad = criar_campo_com_imagem(frame_cadastro, "Repetir Senha   ", None, (0, 0), show="*")
 
     Cadastra_Buttom = ctk.CTkButton(
         frame_cadastro, text="CADASTRAR", 
@@ -194,7 +223,7 @@ def main():
         fg_color=cores['verde_primario'],
         corner_radius=10,
         hover_color=cores['verde_primario_hover'],
-        command=lambda: print("Cadastro clicado!")
+        command=realizar_cadastro
     ).pack(pady=(10, 10))
 
     Voltar_Buttom = ctk.CTkButton(

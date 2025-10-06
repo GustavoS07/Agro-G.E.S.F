@@ -65,8 +65,12 @@ def tentarLogin(nome,senha,on_sucess=None):
         if resposta:
             print("passei visse")
             if on_sucess:    
-                abrir_dashboard
+                on_sucess()
+            return True
         else:
             print("Erro no else")
+            return False
     except Exception as e:
         print(f"Erro [{e}]")
+    finally:
+        connection.close()
